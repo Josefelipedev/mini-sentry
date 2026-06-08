@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id                String             @id @default(cuid())
+  name              String
+  apiKey            String             @unique @default(cuid())
+  allowedOrigins    String[]           @default([])
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  errorGroups       ErrorGroup[]
+  errorEvents       ErrorEvent[]
+  sourceMaps        SourceMap[]
+  performanceEvents PerformanceEvent[]
+}
+
+model ErrorGroup {
+  id               String      @id @default(cuid())
+  projectId        String
+  project          Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  fingerprint      String
+  title            String      @db.VarChar(255)
+  message          String      @db.Text
+  status           ErrorStatus @default(open)
+  environment      String      @default("production")
+  firstSeenAt      DateTime    @default(now())
+  lastSeenAt       DateTime    @default(now())
+  totalOccurrences Int         @default(1)
+  affectedUsers    String[]    @default([])
+  events           ErrorEvent[]
+
+  @@unique([projectId, fingerprint, environment])
+  @@index([projectId, status])
+  @@index([projectId, lastSeenAt])
+  @@index([projectId, totalOccurrences])
+}
+
+model ErrorEvent {
+  id          String     @id @default(cuid())
+  groupId     String
+  group       ErrorGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  projectId   String
+  project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sessionId   String?
+  userId      String?
+  url         String?    @db.Text
+  message          String     @db.Text
+  stack            String?    @db.Text
+  desminifiedStack String?    @db.Text
+  browser          Json?
+  breadcrumbs      Json?
+  metadata    Json?
+  environment String     @default("production")
+  version     String?
+  createdAt   DateTime   @default(now())
+
+  @@index([groupId, createdAt])
+  @@index([projectId, createdAt])
+  @@index([userId])
+}
+
+model SourceMap {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  version   String
+  filename  String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@unique([projectId, version, filename])
+  @@index([projectId, version])
+}
+
+model PerformanceEvent {
+  id          String      @id @default(cuid())
+  projectId   String
+  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sessionId   String?
+  url         String?     @db.Text
+  type        PerfType
+  name        String      @db.VarChar(255)
+  value       Float
+  rating      PerfRating
+  version     String?     @db.VarChar(100)
+  environment String      @default("production") @db.VarChar(50)
+  createdAt   DateTime    @default(now())
+
+  @@index([projectId, createdAt])
+  @@index([projectId, type, name])
+}
+
+enum PerfType {
+  web_vital
+  http
+  navigation
+}
+
+enum PerfRating {
+  good
+  needs_improvement
+  poor
+}
+
+enum ErrorStatus {
+  open
+  resolved
+  ignored
+}
