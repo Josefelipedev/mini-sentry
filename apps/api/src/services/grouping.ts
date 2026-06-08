@@ -1,6 +1,7 @@
 import type { PrismaClient } from '@prisma/client';
 import type { ErrorPayload } from '@mini-sentry/shared';
 import { desminifyStack } from './desminify';
+import { sendNewGroupAlert } from './alerting';
 
 export async function upsertErrorGroup(
   prisma: PrismaClient,
@@ -31,8 +32,20 @@ export async function upsertErrorGroup(
       lastSeenAt: new Date(),
       totalOccurrences: { increment: 1 },
     },
-    select: { id: true, affectedUsers: true },
+    select: { id: true, affectedUsers: true, totalOccurrences: true, title: true, message: true, environment: true },
   });
+
+  // Fire alert only on the very first occurrence
+  if (group.totalOccurrences === 1) {
+    prisma.project.findUnique({
+      where: { id: projectId },
+      select: { name: true, alertWebhookUrl: true, alertEmail: true },
+    }).then((project) => {
+      if (project && (project.alertWebhookUrl || project.alertEmail)) {
+        sendNewGroupAlert({ project, group, projectId }).catch(() => {/* already logged inside */});
+      }
+    }).catch(() => {/* never block ingest */});
+  }
 
   // Add userId to affectedUsers without duplicates
   if (payload.userId && !group.affectedUsers.includes(payload.userId)) {

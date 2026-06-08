@@ -38,6 +38,10 @@ export const api = {
     list: () => get<ProjectDTO[]>('/api/v1/projects'),
     create: (body: { name: string; allowedOrigins?: string[] }) =>
       post<ProjectDTO>('/api/v1/projects', body),
+    updateAlerts: (
+      projectId: string,
+      body: { alertWebhookUrl?: string | null; alertEmail?: string | null }
+    ) => patch<ProjectDTO>(`/api/v1/projects/${projectId}/alerts`, body),
   },
   errors: {
     list: (

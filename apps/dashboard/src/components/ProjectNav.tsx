@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-type Tab = 'errors' | 'performance' | 'releases';
+type Tab = 'errors' | 'performance' | 'releases' | 'settings';
 
 interface Props {
   projectId: string;
@@ -11,6 +11,7 @@ const tabs: { key: Tab; label: string; href: (id: string) => string }[] = [
   { key: 'errors',      label: 'Errors',      href: (id) => `/projects/${id}` },
   { key: 'performance', label: 'Performance',  href: (id) => `/projects/${id}/performance` },
   { key: 'releases',    label: 'Releases',     href: (id) => `/projects/${id}/releases` },
+  { key: 'settings',    label: 'Settings',     href: (id) => `/projects/${id}/settings` },
 ];
 
 export function ProjectNav({ projectId, active }: Props) {

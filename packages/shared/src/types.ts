@@ -73,6 +73,8 @@ export interface ProjectDTO {
   name: string;
   apiKey: string;
   allowedOrigins: string[];
+  alertWebhookUrl: string | null;
+  alertEmail: string | null;
   createdAt: string;
 }
 
