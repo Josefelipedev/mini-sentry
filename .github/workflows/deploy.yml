@@ -37,18 +37,15 @@ jobs:
             git pull origin main
 
             # Escreve o .env.prod com os secrets do GitHub
-            cat > deploy/.env.prod << ENVEOF
-            DATABASE_URL=${DATABASE_URL}
-            REDIS_URL=${REDIS_URL}
-            PORT=3001
-            NODE_ENV=production
-            DASHBOARD_ORIGIN=${DASHBOARD_ORIGIN}
-            NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-            API_RATE_LIMIT_MAX=200
-            API_RATE_LIMIT_WINDOW_MS=60000
-            INGEST_RATE_LIMIT_MAX=500
-            INGEST_RATE_LIMIT_WINDOW_MS=60000
-            ENVEOF
+            printf 'DATABASE_URL=%s\nREDIS_URL=%s\nPORT=3001\nNODE_ENV=production\nDASHBOARD_ORIGIN=%s\nNEXT_PUBLIC_API_URL=%s\nAPI_RATE_LIMIT_MAX=200\nAPI_RATE_LIMIT_WINDOW_MS=60000\nINGEST_RATE_LIMIT_MAX=500\nINGEST_RATE_LIMIT_WINDOW_MS=60000\n' \
+              "$DATABASE_URL" "$REDIS_URL" "$DASHBOARD_ORIGIN" "$NEXT_PUBLIC_API_URL" \
+              > deploy/.env.prod
+
+            # Aplica o schema no Postgres (cria tabelas se não existirem)
+            docker exec thechats-postgres psql \
+              -U postgres \
+              -c "CREATE DATABASE mini_sentry;" 2>/dev/null || true
+            docker exec -i thechats-postgres psql -U postgres -d mini_sentry < deploy/schema.sql
 
             # Build e restart
             docker compose -f docker-compose.prod.yml build --no-cache
