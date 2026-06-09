@@ -1,0 +1,11 @@
+logs.thechats.me {
+    # API routes → Fastify
+    handle /api/* {
+        reverse_proxy api:3001
+    }
+
+    # Tudo mais → Next.js dashboard
+    handle {
+        reverse_proxy dashboard:3000
+    }
+}
