@@ -183,8 +183,8 @@ npm publish --access public
 ## Roadmap
 
 - [x] Source maps upload + stack trace desminification
-- [ ] Performance monitoring (Web Vitals, slow requests)
-- [ ] React Error Boundary helper package
-- [ ] Vue plugin
-- [ ] Occurrence histogram in error detail
-- [ ] Alerting (email/Slack webhook)
+- [x] Performance monitoring (Web Vitals, slow requests)
+- [x] React Error Boundary helper package
+- [x] Vue plugin
+- [x] Occurrence histogram in error detail
+- [x] Alerting (email/Slack webhook)
