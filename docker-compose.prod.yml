@@ -5,10 +5,14 @@ services:
       dockerfile: Dockerfile.api
     restart: unless-stopped
     env_file: deploy/.env.prod
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     networks:
-      - internal
+      - thechats-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mini-sentry-api.rule=Host(`logs.thechats.me`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.mini-sentry-api.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mini-sentry-api.priority=10"
+      - "traefik.http.services.mini-sentry-api.loadbalancer.server.port=3001"
 
   dashboard:
     build:
@@ -17,29 +21,15 @@ services:
     restart: unless-stopped
     env_file: deploy/.env.prod
     networks:
-      - internal
-
-  caddy:
-    image: caddy:2-alpine
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    networks:
-      - internal
-    depends_on:
-      - api
-      - dashboard
-
-volumes:
-  caddy_data:
-  caddy_config:
+      - thechats-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mini-sentry-dashboard.rule=Host(`logs.thechats.me`)"
+      - "traefik.http.routers.mini-sentry-dashboard.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mini-sentry-dashboard.priority=1"
+      - "traefik.http.services.mini-sentry-dashboard.loadbalancer.server.port=3000"
 
 networks:
-  internal:
-    driver: bridge
+  thechats-network:
+    external: true
+    name: thechats_thechats-network
