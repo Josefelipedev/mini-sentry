@@ -1,0 +1,57 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          DATABASE_URL:        ${{ secrets.DATABASE_URL }}
+          REDIS_URL:           ${{ secrets.REDIS_URL }}
+          DASHBOARD_ORIGIN:    ${{ secrets.DASHBOARD_ORIGIN }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+        with:
+          host:     ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key:      ${{ secrets.VPS_SSH_KEY }}
+          port:     ${{ secrets.VPS_PORT }}
+          envs:     DATABASE_URL,REDIS_URL,DASHBOARD_ORIGIN,NEXT_PUBLIC_API_URL
+          script: |
+            set -e
+
+            # Garante que o repo exista na VPS
+            if [ ! -d /opt/mini-sentry ]; then
+              git clone https://github.com/Josefelipedev/mini-sentry.git /opt/mini-sentry
+            fi
+
+            cd /opt/mini-sentry
+            git pull origin main
+
+            # Escreve o .env.prod com os secrets do GitHub
+            cat > deploy/.env.prod << ENVEOF
+            DATABASE_URL=${DATABASE_URL}
+            REDIS_URL=${REDIS_URL}
+            PORT=3001
+            NODE_ENV=production
+            DASHBOARD_ORIGIN=${DASHBOARD_ORIGIN}
+            NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+            API_RATE_LIMIT_MAX=200
+            API_RATE_LIMIT_WINDOW_MS=60000
+            INGEST_RATE_LIMIT_MAX=500
+            INGEST_RATE_LIMIT_WINDOW_MS=60000
+            ENVEOF
+
+            # Build e restart
+            docker compose -f docker-compose.prod.yml build --no-cache
+            docker compose -f docker-compose.prod.yml up -d
+
+            echo "✅ Deploy concluído — $(date)"
