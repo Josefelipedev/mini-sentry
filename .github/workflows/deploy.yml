@@ -29,11 +29,11 @@ jobs:
             set -e
 
             # Garante que o repo exista na VPS
-            if [ ! -d /opt/mini-sentry ]; then
-              git clone https://github.com/Josefelipedev/mini-sentry.git /opt/mini-sentry
+            if [ ! -d ~/mini-sentry ]; then
+              git clone https://github.com/Josefelipedev/mini-sentry.git ~/mini-sentry
             fi
 
-            cd /opt/mini-sentry
+            cd ~/mini-sentry
             git pull origin main
 
             # Escreve o .env.prod com os secrets do GitHub
