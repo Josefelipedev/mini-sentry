@@ -7,7 +7,9 @@ import { ingestRoutes } from './routes/ingest';
 import { projectRoutes } from './routes/projects';
 import { errorRoutes } from './routes/errors';
 import { sourcemapRoutes } from './routes/sourcemaps';
-import { performanceRoutes } from './routes/performance';
+import { performanceIngestRoute, performanceReadRoutes } from './routes/performance';
+import { authRoutes } from './routes/auth';
+import { requireAuth } from './hooks/requireAuth';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -46,7 +48,12 @@ export async function buildApp() {
     }),
   });
 
-  // Stricter rate limit for ingestion + performance endpoints
+  app.decorate('prisma', prisma);
+
+  // Public: auth endpoints (login, logout, setup, me)
+  await app.register(authRoutes);
+
+  // Public: SDK ingestion (protected by project API key, not session)
   await app.register(
     async (instance) => {
       await instance.register(rateLimit, {
@@ -60,16 +67,19 @@ export async function buildApp() {
       });
 
       await instance.register(ingestRoutes);
-      await instance.register(performanceRoutes);
+      await instance.register(performanceIngestRoute);
     },
     { prefix: '/' }
   );
 
-  app.decorate('prisma', prisma);
-
-  await app.register(projectRoutes);
-  await app.register(errorRoutes);
-  await app.register(sourcemapRoutes);
+  // Protected: dashboard management routes (require valid session cookie or Bearer token)
+  await app.register(async (managed) => {
+    managed.addHook('preHandler', requireAuth);
+    await managed.register(projectRoutes);
+    await managed.register(errorRoutes);
+    await managed.register(sourcemapRoutes);
+    await managed.register(performanceReadRoutes);
+  });
 
   app.get('/health', async () => ({ ok: true, ts: Date.now() }));
 

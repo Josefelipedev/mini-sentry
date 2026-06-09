@@ -1,5 +1,9 @@
 -- Enums
 DO $$ BEGIN
+  CREATE TYPE "UserRole" AS ENUM ('owner', 'member');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
   CREATE TYPE "ErrorStatus" AS ENUM ('open', 'resolved', 'ignored');
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
@@ -12,6 +16,18 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Tables
+CREATE TABLE IF NOT EXISTS "User" (
+  "id"           TEXT        NOT NULL,
+  "email"        TEXT        NOT NULL,
+  "passwordHash" TEXT        NOT NULL,
+  "name"         TEXT,
+  "role"         "UserRole"  NOT NULL DEFAULT 'member',
+  "createdAt"    TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt"    TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "User_email_key" ON "User"("email");
+
 CREATE TABLE IF NOT EXISTS "Project" (
   "id" TEXT NOT NULL,
   "name" TEXT NOT NULL,

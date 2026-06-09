@@ -19,12 +19,13 @@ jobs:
           REDIS_URL:           ${{ secrets.REDIS_URL }}
           DASHBOARD_ORIGIN:    ${{ secrets.DASHBOARD_ORIGIN }}
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+          JWT_SECRET:          ${{ secrets.JWT_SECRET }}
         with:
           host:     ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key:      ${{ secrets.VPS_SSH_KEY }}
           port:     ${{ secrets.VPS_PORT }}
-          envs:     DATABASE_URL,REDIS_URL,DASHBOARD_ORIGIN,NEXT_PUBLIC_API_URL
+          envs:     DATABASE_URL,REDIS_URL,DASHBOARD_ORIGIN,NEXT_PUBLIC_API_URL,JWT_SECRET
           script: |
             set -e
 
@@ -37,8 +38,8 @@ jobs:
             git pull origin main
 
             # Escreve o .env.prod com os secrets do GitHub
-            printf 'DATABASE_URL=%s\nREDIS_URL=%s\nPORT=3001\nNODE_ENV=production\nDASHBOARD_ORIGIN=%s\nNEXT_PUBLIC_API_URL=%s\nAPI_RATE_LIMIT_MAX=200\nAPI_RATE_LIMIT_WINDOW_MS=60000\nINGEST_RATE_LIMIT_MAX=500\nINGEST_RATE_LIMIT_WINDOW_MS=60000\n' \
-              "$DATABASE_URL" "$REDIS_URL" "$DASHBOARD_ORIGIN" "$NEXT_PUBLIC_API_URL" \
+            printf 'DATABASE_URL=%s\nREDIS_URL=%s\nPORT=3001\nNODE_ENV=production\nDASHBOARD_ORIGIN=%s\nNEXT_PUBLIC_API_URL=%s\nJWT_SECRET=%s\nAPI_RATE_LIMIT_MAX=200\nAPI_RATE_LIMIT_WINDOW_MS=60000\nINGEST_RATE_LIMIT_MAX=500\nINGEST_RATE_LIMIT_WINDOW_MS=60000\n' \
+              "$DATABASE_URL" "$REDIS_URL" "$DASHBOARD_ORIGIN" "$NEXT_PUBLIC_API_URL" "$JWT_SECRET" \
               > deploy/.env.prod
 
             # Aplica o schema no Postgres (cria tabelas se não existirem)

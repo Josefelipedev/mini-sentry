@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { api } from '@/lib/api';
+import { serverApi } from '@/lib/server-api';
 import { ProjectNav } from '@/components/ProjectNav';
 import { ReleasesTable } from '@/components/ReleasesTable';
 
@@ -9,6 +9,7 @@ interface Props {
 
 export default async function ReleasesPage({ params }: Props) {
   const { projectId } = await params;
+  const api = await serverApi();
 
   let releases: { version: string; files: number }[];
   try {

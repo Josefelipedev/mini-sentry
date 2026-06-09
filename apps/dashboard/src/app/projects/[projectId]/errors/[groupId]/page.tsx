@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { api } from '@/lib/api';
+import { serverApi } from '@/lib/server-api';
 import { StatusBadge } from '@/components/StatusBadge';
 import { BreadcrumbList } from '@/components/BreadcrumbList';
 import { OccurrenceHistogram } from '@/components/OccurrenceHistogram';
@@ -16,6 +16,7 @@ function fmtDate(iso: string) {
 
 export default async function ErrorDetailPage({ params }: Props) {
   const { projectId, groupId } = await params;
+  const api = await serverApi();
 
   let group;
   let events;

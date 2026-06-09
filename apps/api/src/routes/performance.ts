@@ -14,7 +14,7 @@ const ratingMap: Record<string, PerfRating> = {
   'poor':              PerfRating.poor,
 };
 
-export async function performanceRoutes(app: FastifyInstance): Promise<void> {
+export async function performanceIngestRoute(app: FastifyInstance): Promise<void> {
   // POST /api/v1/performance — receives events from the SDK
   app.post<{ Body: PerformancePayload }>(
     '/api/v1/performance',
@@ -70,7 +70,9 @@ export async function performanceRoutes(app: FastifyInstance): Promise<void> {
       return reply.status(202).send({ ok: true });
     }
   );
+}
 
+export async function performanceReadRoutes(app: FastifyInstance): Promise<void> {
   // GET /api/v1/projects/:projectId/performance?days=7
   app.get<{
     Params: { projectId: string };

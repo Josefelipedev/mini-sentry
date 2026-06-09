@@ -1,8 +1,9 @@
 import { redirect } from 'next/navigation';
-import { api } from '@/lib/api';
+import { serverApi } from '@/lib/server-api';
 import Link from 'next/link';
 
 export default async function HomePage() {
+  const api = await serverApi();
   let projects;
   try {
     projects = await api.projects.list();

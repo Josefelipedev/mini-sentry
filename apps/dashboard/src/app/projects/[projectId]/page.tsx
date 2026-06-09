@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { api } from '@/lib/api';
+import { serverApi } from '@/lib/server-api';
 import { ErrorTable } from '@/components/ErrorTable';
 import { ProjectNav } from '@/components/ProjectNav';
 
@@ -12,6 +12,7 @@ interface Props {
 export default async function ProjectPage({ params, searchParams }: Props) {
   const { projectId } = await params;
   const { status, environment, page } = await searchParams;
+  const api = await serverApi();
 
   let projects;
   let result;

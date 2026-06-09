@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { api } from '@/lib/api';
+import { serverApi } from '@/lib/server-api';
 import { ProjectNav } from '@/components/ProjectNav';
 import type { PerfRating } from '@mini-sentry/shared';
 
@@ -32,6 +32,7 @@ export default async function PerformancePage({ params, searchParams }: Props) {
   const { projectId } = await params;
   const { days } = await searchParams;
   const daysNum = Number(days ?? 7);
+  const api = await serverApi();
 
   let summary;
   try {
